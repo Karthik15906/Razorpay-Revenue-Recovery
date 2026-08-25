@@ -5,5 +5,5 @@ class State(TypedDict):
     root_cause:str
     confidence:float
     reason:str
-    recomended_action:str
+    recommended_action:str
     

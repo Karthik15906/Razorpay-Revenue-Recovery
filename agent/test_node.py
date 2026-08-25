@@ -1,5 +1,5 @@
-from .nodes import predict_root_cause,get_reason,get_recommended_action
-
+# from .nodes import predict_root_cause,get_reason,get_recommended_action
+from .graph import agent
 
 transaction = {
     "payment_method": "credit_card",
@@ -28,14 +28,9 @@ state={
     "recommended_action": ""
 }
 
-result = predict_root_cause(state)
-state.update(result)
-result=get_reason(state)
-state.update(result)
-result=get_recommended_action(state)
-state.update(result)
-
-print("Root Cause:", state["root_cause"])
-print("Confidence:", state["confidence"])
-print("Reason:", state["reason"])
-print("Action:", state["recommended_action"])
+result = agent.invoke(state)
+print(result)
+print("Root Cause:", result["root_cause"])
+print("Confidence:", result["confidence"])
+print("Reason:", result["reason"])
+print("Action:", result["recommended_action"])

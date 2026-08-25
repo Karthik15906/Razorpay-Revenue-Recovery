@@ -60,7 +60,9 @@ def get_reason(state:State):
 
 
 
-def get_recommended_action(state:State):
+def get_recommended_action(state: State):
+    print("ACTION NODE REACHED")
+
     actions = {
         "bank_server_timeout": "Retry the transaction after the gateway recovers.",
         "card_blocked": "Ask the customer to contact their bank or use another card.",
@@ -75,7 +77,6 @@ def get_recommended_action(state:State):
     return {
         "recommended_action": actions[state["root_cause"]]
     }
-
 
 def confidence_router(state:State):
     if state["confidence"] >= 0.80:
