@@ -1,0 +1,186 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  color: #1f2937;
+}
+
+header {
+  padding: 24px 6%;
+  background: #111827;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header h1 {
+  margin: 0 0 6px;
+}
+
+header p {
+  margin: 0;
+  color: #cbd5e1;
+}
+
+.status {
+  padding: 8px 12px;
+  border-radius: 20px;
+  background: #166534;
+  font-size: 13px;
+}
+
+main {
+  width: min(1200px, 92%);
+  margin: 28px auto;
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+button {
+  border: 0;
+  border-radius: 7px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.mode-buttons button {
+  background: #e5e7eb;
+}
+
+.mode-buttons button.active {
+  background: #111827;
+  color: white;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+input,
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 7px;
+  background: white;
+}
+
+.primary {
+  margin-top: 22px;
+  background: #111827;
+  color: white;
+  min-width: 120px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.06);
+}
+
+.stat span {
+  display: block;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.stat strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 26px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 13px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  font-size: 14px;
+}
+
+th {
+  background: #f9fafb;
+}
+
+tr {
+  cursor: pointer;
+}
+
+tr:hover {
+  background: #f9fafb;
+}
+
+.hidden {
+  display: none;
+}
+
+.dataset-form {
+  max-width: 300px;
+}
+
+.error {
+  color: #b91c1c;
+  margin-bottom: 0;
+}
+
+@media (max-width: 800px) {
+  .form-grid,
+  .summary {
+    grid-template-columns: 1fr;
+  }
+
+  header {
+    gap: 15px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

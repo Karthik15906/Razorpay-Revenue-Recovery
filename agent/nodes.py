@@ -1,8 +1,11 @@
 import joblib as jl
 import pandas as pd
 from .state import State
+import random
+from pathlib import Path
 
-artifact = jl.load('./model/root_cause_model.pkl')
+MODEL_PATH = Path(__file__).resolve().parents[1] / "model" / "root_cause_model.pkl"
+artifact = jl.load(MODEL_PATH)
 
 pipepline = artifact['pipeline']
 label_encoder = artifact['label_encoder']
@@ -23,7 +26,7 @@ FEATURES = [
     "transaction_limit",
     "otp_attempts",
     "cvv_match",
-    "recovered"
+
 ]
 
 
@@ -61,7 +64,13 @@ def get_reason(state:State):
 
 
 def get_recommended_action(state: State):
-    print("ACTION NODE REACHED")
+    retry_count = state["transaction"]["retry_count"]
+
+    if retry_count >= 3:
+        return {
+            "recommended_action":
+                "Do not retry again. Escalate the transaction for human review."
+        }
 
     actions = {
         "bank_server_timeout": "Retry the transaction after the gateway recovers.",
@@ -88,3 +97,34 @@ def human_review(state:State):
     return {
         "recommended_action": "Send the transaction for human review."
     }
+
+
+
+RECOVERY_PROBABILITIES = {
+    "insufficient_funds": 0.60,
+    "bank_server_timeout": 0.75,
+    "issuer_bank_down": 0.70,
+    "otp_cvv_mismatch": 0.55,
+    "card_blocked": 0.30,
+    "expired_card": 0.20,
+    "risk_fraud_block": 0.15,
+    "transaction_limit_exceeded": 0.45,
+}
+
+
+def attempt_recovery(state:State):
+    root_cause = state['root_cause']
+    recovered  = random.random() < RECOVERY_PROBABILITIES[root_cause]
+
+    return {'recovered':int(recovered),
+            "recovery_attempts": state["recovery_attempts"] + 1
+            }
+
+def recovery_router(state:State):
+    if state['recovered']:
+        return  'recovered'
+
+    if state['recovery_attempts']>=3:
+        return 'human_review'
+
+    return 'retry'

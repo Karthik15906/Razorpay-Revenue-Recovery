@@ -14,7 +14,7 @@ df = pd.read_csv("./data/payment_failures.csv")
 
 category = ['payment_method','gateway_status','issuer_status']
 
-X = df.drop(columns=["root_cause","transaction_id","timestamp",'response_code'])
+X = df.drop(columns=["root_cause","transaction_id","timestamp",'response_code','recovered'])
 
 
 y = df["root_cause"]
@@ -80,7 +80,7 @@ importance = pd.Series(pipeline.named_steps["model"].feature_importances_,index=
 print(importance)
 
 
-artifact = {"pipeline": pipeline,"label_encoder": le}
+# artifact = {"pipeline": pipeline,"label_encoder": le}
 
 
 # jl.dump(

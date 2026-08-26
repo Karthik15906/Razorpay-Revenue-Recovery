@@ -6,4 +6,7 @@ class State(TypedDict):
     confidence:float
     reason:str
     recommended_action:str
+
+    recovered: int
+    recovery_attempts: int
     
