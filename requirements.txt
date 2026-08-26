@@ -1,0 +1,7 @@
+uv
+fastapi
+langgraph
+scikit-learn
+pydantic
+xgboot
+typedict
