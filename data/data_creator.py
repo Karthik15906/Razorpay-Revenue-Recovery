@@ -45,7 +45,6 @@ def generate_dataset(n=10000,seed=42):
         "root_cause": cause,
     })
 
-    # Inject cause-specific, observable signals with overlap/noise.
     for c in root_causes:
         m = df["root_cause"].eq(c)
         count = m.sum()
@@ -99,7 +98,6 @@ def generate_dataset(n=10000,seed=42):
         else:
             df.loc[mask, col] = 1 - df.loc[mask, col].astype(int)
 
-    # Recovery outcome: based primarily on cause, retry state, and realistic randomness.
     base_recovery = {
         "insufficient_funds": .42,
         "expired_card": .12,

@@ -6,43 +6,60 @@
     <title>Payment Recovery Dashboard</title>
     <link rel="stylesheet" href="style.css" />
   </head>
+
   <body>
     <header>
       <div>
         <h1>Payment Recovery</h1>
         <p>Transaction analysis and recovery monitoring</p>
       </div>
+
       <span class="status">Backend Ready</span>
     </header>
 
     <main>
+
+      <!-- =========================
+           CONTROLS
+      ========================== -->
+
       <section class="card controls">
+
         <h2>Analyze Transactions</h2>
 
         <div class="mode-buttons">
-          <button id="manualMode" class="active">Manual Transaction</button>
-          <button id="datasetMode">Generated Dataset</button>
+          <button id="manualMode" class="active">
+            Manual Transaction
+          </button>
+
+          <button id="datasetMode">
+            Generated Dataset
+          </button>
         </div>
 
+
+        <!-- MANUAL FORM -->
+
         <div id="manualForm" class="form-grid">
-          <label
-            >Payment Method
+
+          <label>
+            Payment Method
             <select id="payment_method">
               <option value="credit_card">Credit Card</option>
               <option value="debit_card">Debit Card</option>
             </select>
           </label>
 
-          <label
-            >Gateway Status
+          <label>
+            Gateway Status
             <select id="gateway_status">
               <option value="operational">Operational</option>
               <option value="degraded">Degraded</option>
             </select>
           </label>
 
-          <label
-            >Issuer Status
+          <label>
+            Issuer Status
             <select id="issuer_status">
               <option value="operational">Operational</option>
               <option value="degraded">Degraded</option>
@@ -50,33 +67,33 @@
             </select>
           </label>
 
-          <label
-            >Amount
+          <label>
+            Amount
             <input id="amount" type="number" value="500" />
           </label>
 
-          <label
-            >Card Age (days)
+          <label>
+            Card Age (days)
             <input id="card_age_days" type="number" value="400" />
           </label>
 
-          <label
-            >Card Expiry (days)
+          <label>
+            Card Expiry (days)
             <input id="card_expiry_days" type="number" value="250" />
           </label>
 
-          <label
-            >Retry Count
+          <label>
+            Retry Count
             <input id="retry_count" type="number" value="1" />
           </label>
 
-          <label
-            >Customer Tenure (days)
+          <label>
+            Customer Tenure (days)
             <input id="customer_tenure_days" type="number" value="800" />
           </label>
 
-          <label
-            >Past Success Rate
+          <label>
+            Past Success Rate
             <input
               id="customer_past_success_rate"
               type="number"
@@ -85,23 +102,36 @@
             />
           </label>
 
-          <label
-            >Gateway Response (ms)
-            <input id="gateway_response_time_ms" type="number" value="350" />
+          <label>
+            Gateway Response (ms)
+            <input
+              id="gateway_response_time_ms"
+              type="number"
+              value="350"
+            />
           </label>
 
-          <label
-            >Issuer Response (ms)
-            <input id="issuer_response_time_ms" type="number" value="300" />
+          <label>
+            Issuer Response (ms)
+            <input
+              id="issuer_response_time_ms"
+              type="number"
+              value="300"
+            />
           </label>
 
-          <label
-            >Risk Score
-            <input id="risk_score" type="number" step="0.01" value="0.15" />
+          <label>
+            Risk Score
+            <input
+              id="risk_score"
+              type="number"
+              step="0.01"
+              value="0.15"
+            />
           </label>
 
-          <label
-            >Available Balance Ratio
+          <label>
+            Available Balance Ratio
             <input
               id="available_balance_ratio"
               type="number"
@@ -110,37 +140,68 @@
             />
           </label>
 
-          <label
-            >Transaction Limit
-            <input id="transaction_limit" type="number" value="5000" />
+          <label>
+            Transaction Limit
+            <input
+              id="transaction_limit"
+              type="number"
+              value="5000"
+            />
           </label>
 
-          <label
-            >OTP Attempts
-            <input id="otp_attempts" type="number" value="1" />
+          <label>
+            OTP Attempts
+            <input
+              id="otp_attempts"
+              type="number"
+              value="1"
+            />
           </label>
 
-          <label
-            >CVV Match
+          <label>
+            CVV Match
             <select id="cvv_match">
               <option value="1">Match</option>
               <option value="0">Mismatch</option>
             </select>
           </label>
+
         </div>
+
+
+        <!-- DATASET FORM -->
 
         <div id="datasetForm" class="dataset-form hidden">
-          <label
-            >Number of transactions
-            <input id="n_rows" type="number" min="1" value="10" />
+
+          <label>
+            Number of transactions
+
+            <input
+              id="n_rows"
+              type="number"
+              min="1"
+              value="10"
+            />
           </label>
+
         </div>
 
-        <button id="analyzeBtn" class="primary">Analyze</button>
+
+        <button id="analyzeBtn" class="primary">
+          Analyze
+        </button>
+
         <p id="error" class="error"></p>
+
       </section>
 
+
+      <!-- =========================
+           SUMMARY
+      ========================== -->
+
       <section id="summary" class="summary hidden">
+
         <div class="stat">
           <span>Processed</span>
           <strong id="processed">0</strong>
@@ -170,33 +231,61 @@
           <span>Recovery Rate</span>
           <strong id="rate">0%</strong>
         </div>
+
       </section>
 
+
+      <!-- =========================
+           RESULTS TABLE
+      ========================== -->
+
       <section id="resultsCard" class="card hidden">
+
         <h2>Transaction Results</h2>
+
         <div class="table-wrap">
+
           <table>
+
             <thead>
+
               <tr>
                 <th>Transaction</th>
                 <th>Root Cause</th>
                 <th>Confidence</th>
-                <th>Recovery</th>
+                <th>Recovery Probability</th>
+                <th>Decision</th>
+                <th>Recovered</th>
                 <th>Attempts</th>
-                <th>Action</th>
               </tr>
+
             </thead>
+
             <tbody id="resultsBody"></tbody>
+
           </table>
+
         </div>
+
       </section>
+
+
+      <!-- =========================
+           DETAILS
+      ========================== -->
 
       <section id="detailCard" class="card hidden">
+
         <h2>Transaction Details</h2>
+
         <div id="details"></div>
+
       </section>
+
     </main>
 
+
     <script src="script.js"></script>
+
   </body>
 </html>

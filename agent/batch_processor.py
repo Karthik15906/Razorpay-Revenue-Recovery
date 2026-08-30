@@ -39,10 +39,17 @@ def process_dataset(n_rows):
 
         state = {
             "transaction": transaction,
+
             "root_cause": "",
             "confidence": 0.0,
+
+            "recovery_probability": 0.0,
+            "recovery_decision": "",
+            "decision_reason": "",
+
             "reason": "",
             "recommended_action": "",
+
             "recovered": False,
             "recovery_attempts": 0,
         }
@@ -51,41 +58,64 @@ def process_dataset(n_rows):
 
         results.append({
             "transaction_id": row["transaction_id"],
-            "amount":row['amount'],
+            "amount": float(row["amount"]),
+
             "predicted_root_cause": result["root_cause"],
-            "confidence": result["confidence"],
+            "confidence": float(result["confidence"]),
+
             "reason": result["reason"],
             "recommended_action": result["recommended_action"],
+
+            "recovery_probability": float(
+                result["recovery_probability"]
+            ),
+
+            "recovery_decision": result["recovery_decision"],
+
+            "decision_reason": result["decision_reason"],
+
             "recovered": result["recovered"],
+
             "recovery_attempts": result["recovery_attempts"],
         })
 
-    total_amount = sum(r["amount"] for r in results)
+    total_amount = sum(
+        r["amount"]
+        for r in results
+    )
 
     recovered_amount = sum(
         r["amount"]
         for r in results
         if r["recovered"]
     )
+
     human_review = sum(
-    1
-    for r in results
-    if "human review" in r["recommended_action"].lower()
-)
+        1
+        for r in results
+        if r["recovery_decision"] == "human_review"
+    )
 
     amount_at_risk = total_amount - recovered_amount
 
     return {
         "results": results,
+
         "summary": {
             "processed": len(results),
+
             "total_amount": total_amount,
+
             "recovered_amount": recovered_amount,
+
             "amount_at_risk": amount_at_risk,
+
             "human_review": human_review,
+
             "recovery_rate": (
                 recovered_amount / total_amount * 100
-                if total_amount > 0 else 0
+                if total_amount > 0
+                else 0
             ),
         }
     }

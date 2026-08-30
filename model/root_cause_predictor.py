@@ -28,8 +28,7 @@ X_train, X_test, y_train, y_test = train_test_split(
     stratify=y
 )
 
-preprocessor = ColumnTransformer(transformers=[("encoded",
-OneHotEncoder(sparse_output=False,handle_unknown="ignore"),category)],remainder="passthrough",n_jobs=-1)
+preprocessor = ColumnTransformer(transformers=[("encoded",OneHotEncoder(sparse_output=False,handle_unknown="ignore"),category)],remainder="passthrough",n_jobs=-1)
 
 
 le = LabelEncoder()
@@ -57,10 +56,8 @@ pipeline = Pipeline(
     ]
 )
 
-pipeline.fit(
-    X_train,
-    y_train_encoded
-)
+pipeline.fit(X_train,y_train_encoded)
+
 y_pred = pipeline.predict(X_test)
 
 y_pred_labels = le.inverse_transform(y_pred)

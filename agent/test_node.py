@@ -1,6 +1,7 @@
 from .graph import agent
 import time
 
+
 transactions = [
 
     {
@@ -80,29 +81,52 @@ transactions = [
     }
 ]
 
+
 for i, transaction in enumerate(transactions, start=1):
+
     start = time.time()
 
     state = {
         "transaction": transaction,
+
         "root_cause": "",
         "confidence": 0.0,
+
         "reason": "",
         "recommended_action": "",
-        "recovered": False,
+
+        "recovery_probability": 0.0,
+        "recovery_decision": "",
+
+        "recovered": 0,
         "recovery_attempts": 0
     }
 
     result = agent.invoke(state)
 
     end = time.time()
+
     print(f"\n{'=' * 50}")
-    print(f"TRANSACTION {i}, time_taken:{end-start}")
+    print(f"TRANSACTION {i}, time_taken: {end - start:.4f}s")
     print(f"{'=' * 50}")
 
     print("Root Cause:", result["root_cause"])
     print("Confidence:", result["confidence"])
+
     print("Reason:", result["reason"])
     print("Action:", result["recommended_action"])
+
+    print(
+        "Recovery Probability:",
+        f"{result['recovery_probability']:.4f}"
+    )
+
+    print(
+        "Recovery Probability (%):",
+        f"{result['recovery_probability'] * 100:.2f}%"
+    )
+
+    print("Recovery Decision:", result["recovery_decision"])
+
     print("Recovered:", result["recovered"])
     print("Recovery Attempts:", result["recovery_attempts"])
