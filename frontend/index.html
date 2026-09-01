@@ -18,30 +18,22 @@
     </header>
 
     <main>
-
       <!-- =========================
            CONTROLS
       ========================== -->
 
       <section class="card controls">
-
         <h2>Analyze Transactions</h2>
 
         <div class="mode-buttons">
-          <button id="manualMode" class="active">
-            Manual Transaction
-          </button>
+          <button id="manualMode" class="active">Manual Transaction</button>
 
-          <button id="datasetMode">
-            Generated Dataset
-          </button>
+          <button id="datasetMode">Generated Dataset</button>
         </div>
-
 
         <!-- MANUAL FORM -->
 
         <div id="manualForm" class="form-grid">
-
           <label>
             Payment Method
             <select id="payment_method">
@@ -104,30 +96,17 @@
 
           <label>
             Gateway Response (ms)
-            <input
-              id="gateway_response_time_ms"
-              type="number"
-              value="350"
-            />
+            <input id="gateway_response_time_ms" type="number" value="350" />
           </label>
 
           <label>
             Issuer Response (ms)
-            <input
-              id="issuer_response_time_ms"
-              type="number"
-              value="300"
-            />
+            <input id="issuer_response_time_ms" type="number" value="300" />
           </label>
 
           <label>
             Risk Score
-            <input
-              id="risk_score"
-              type="number"
-              step="0.01"
-              value="0.15"
-            />
+            <input id="risk_score" type="number" step="0.01" value="0.15" />
           </label>
 
           <label>
@@ -142,20 +121,12 @@
 
           <label>
             Transaction Limit
-            <input
-              id="transaction_limit"
-              type="number"
-              value="5000"
-            />
+            <input id="transaction_limit" type="number" value="5000" />
           </label>
 
           <label>
             OTP Attempts
-            <input
-              id="otp_attempts"
-              type="number"
-              value="1"
-            />
+            <input id="otp_attempts" type="number" value="1" />
           </label>
 
           <label>
@@ -165,43 +136,28 @@
               <option value="0">Mismatch</option>
             </select>
           </label>
-
         </div>
-
 
         <!-- DATASET FORM -->
 
         <div id="datasetForm" class="dataset-form hidden">
-
           <label>
             Number of transactions
 
-            <input
-              id="n_rows"
-              type="number"
-              min="1"
-              value="10"
-            />
+            <input id="n_rows" type="number" min="1" value="10" />
           </label>
-
         </div>
 
-
-        <button id="analyzeBtn" class="primary">
-          Analyze
-        </button>
+        <button id="analyzeBtn" class="primary">Analyze</button>
 
         <p id="error" class="error"></p>
-
       </section>
-
 
       <!-- =========================
            SUMMARY
       ========================== -->
 
       <section id="summary" class="summary hidden">
-
         <div class="stat">
           <span>Processed</span>
           <strong id="processed">0</strong>
@@ -231,24 +187,18 @@
           <span>Recovery Rate</span>
           <strong id="rate">0%</strong>
         </div>
-
       </section>
-
 
       <!-- =========================
            RESULTS TABLE
       ========================== -->
 
       <section id="resultsCard" class="card hidden">
-
         <h2>Transaction Results</h2>
 
         <div class="table-wrap">
-
           <table>
-
             <thead>
-
               <tr>
                 <th>Transaction</th>
                 <th>Root Cause</th>
@@ -258,34 +208,24 @@
                 <th>Recovered</th>
                 <th>Attempts</th>
               </tr>
-
             </thead>
 
             <tbody id="resultsBody"></tbody>
-
           </table>
-
         </div>
-
       </section>
-
 
       <!-- =========================
            DETAILS
       ========================== -->
 
       <section id="detailCard" class="card hidden">
-
         <h2>Transaction Details</h2>
 
         <div id="details"></div>
-
       </section>
-
     </main>
 
-
     <script src="script.js"></script>
-
   </body>
 </html>

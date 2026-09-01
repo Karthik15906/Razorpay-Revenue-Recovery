@@ -6,10 +6,7 @@ from pathlib import Path
 from .state import State
 
 
-# =========================================================
 # LOAD ROOT CAUSE MODEL
-# =========================================================
-
 MODEL_PATH = (
     Path(__file__).resolve().parents[1]
     / "model"
@@ -22,9 +19,7 @@ pipeline = artifact["pipeline"]
 label_encoder = artifact["label_encoder"]
 
 
-# =========================================================
 # LOAD RECOVERY MODEL
-# =========================================================
 
 RECOVERY_MODEL_PATH = (
     Path(__file__).resolve().parents[1]
@@ -59,10 +54,7 @@ FEATURES = [
 ]
 
 
-# =========================================================
 # 1. PREDICT ROOT CAUSE
-# =========================================================
-
 def predict_root_cause(state: State):
 
     transaction = pd.DataFrame([state["transaction"]])
@@ -81,30 +73,22 @@ def predict_root_cause(state: State):
     }
 
 
-# =========================================================
 # 2. PREDICT RECOVERY PROBABILITY
-# =========================================================
 
 def predict_recovery_probability(state: State):
 
     transaction = pd.DataFrame([state["transaction"]])
 
-    # IMPORTANT:
-    # Pass predicted root cause to recovery model
     transaction["root_cause"] = state["root_cause"]
 
-    recovery_probability = recovery_pipeline.predict_proba(
-        transaction
-    )[0, 1]
+    recovery_probability = recovery_pipeline.predict_proba(transaction)[0, 1]
 
     return {
         "recovery_probability": float(recovery_probability)
     }
 
 
-# =========================================================
 # 3. RECOVERY DECISION
-# =========================================================
 
 def recovery_decision(state: State):
 
@@ -113,7 +97,6 @@ def recovery_decision(state: State):
     retry_count = state["transaction"]["retry_count"]
     amount = state["transaction"]["amount"]
 
-    # Rule 1: too many retries
     if retry_count >= 3:
         return {
             "recovery_decision": "human_review",
@@ -121,7 +104,6 @@ def recovery_decision(state: State):
                 "Maximum retry limit has been reached."
         }
 
-    # Rule 2: fraud
     if root_cause == "risk_fraud_block":
         return {
             "recovery_decision": "human_review",
@@ -129,7 +111,6 @@ def recovery_decision(state: State):
                 "Fraud-related failure requires manual review."
         }
 
-    # Rule 3: fundamentally non-recoverable through retry
     if root_cause in {"expired_card", "card_blocked"}:
         return {
             "recovery_decision": "do_not_recover",
@@ -137,7 +118,6 @@ def recovery_decision(state: State):
                 "This failure is unlikely to be recoverable through retry."
         }
 
-    # Rule 4: high-value transaction
     if amount >= 50000 and probability < 0.85:
         return {
             "recovery_decision": "human_review",
@@ -145,7 +125,6 @@ def recovery_decision(state: State):
                 "High-value transaction with insufficient recovery confidence."
         }
 
-    # Rule 5: ML probability threshold
     if probability >= 0.70:
         return {
             "recovery_decision": "recover",
@@ -160,9 +139,7 @@ def recovery_decision(state: State):
     }
 
 
-# =========================================================
 # 4. GET ROOT CAUSE REASON
-# =========================================================
 
 def get_reason(state: State):
 
@@ -197,10 +174,7 @@ def get_reason(state: State):
     }
 
 
-# =========================================================
 # 5. RECOMMENDED ACTION
-# =========================================================
-
 def get_recommended_action(state: State):
 
     decision = state["recovery_decision"]
@@ -244,7 +218,6 @@ def get_recommended_action(state: State):
                 actions[state["root_cause"]]
         }
 
-    # decision == recover
 
     retry_count = state["transaction"]["retry_count"]
 
@@ -286,9 +259,7 @@ def get_recommended_action(state: State):
     }
 
 
-# =========================================================
 # 6. ROOT CAUSE CONFIDENCE ROUTER
-# =========================================================
 
 def confidence_router(state: State):
 
@@ -298,9 +269,8 @@ def confidence_router(state: State):
     return "human_review"
 
 
-# =========================================================
+
 # 7. HUMAN REVIEW
-# =========================================================
 
 def human_review(state: State):
 
@@ -319,8 +289,6 @@ def attempt_recovery(state: State):
 
     probability = state["recovery_probability"]
 
-    # Simulation only.
-    # In a real payment system this would call the payment gateway.
     recovered = random.random() < probability
 
     return {
@@ -330,9 +298,8 @@ def attempt_recovery(state: State):
     }
 
 
-# =========================================================
+
 # 9. RECOVERY RESULT ROUTER
-# =========================================================
 
 def recovery_router(state: State):
 
