@@ -1,0 +1,37 @@
+[project]
+name = "razorpay-maybe"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "karthik", email = "chukkakarthik1506@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "datetime>=6.0",
+    "fastapi>=0.141.1",
+    "joblib>=1.5.3",
+    "langgraph>=1.2.11",
+    "numpy>=2.5.2",
+    "pandas>=3.0.5",
+    "pydantic>=2.13.4",
+    "scikit-learn>=1.9.0",
+    "typedict>=0.1.0",
+    "uvicorn>=0.52.4",
+    "xgboost>=3.4.1",
+]
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.3.0",
+]
+
+[project.scripts]
+razorpay-maybe = "razorpay_maybe:main"
+
+[build-system]
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = false
