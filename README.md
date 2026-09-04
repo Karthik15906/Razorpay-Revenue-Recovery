@@ -684,6 +684,7 @@ Possible future improvements include:
 - Cloud database integration
 - Automated model retraining
 - Production-grade observability
+- Hinglish voice over
 
 ---
 
