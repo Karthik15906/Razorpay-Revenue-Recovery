@@ -1,8 +1,9 @@
 # Razorpay Revenue Recovery
 
-An AI-powered payment failure analysis and revenue recovery system that identifies the root cause of failed transactions, estimates recovery probability, and decides whether a transaction should be recovered, ignored, or escalated for human review.
-
-The system combines Machine Learning, LangGraph, FastAPI, Docker, Nginx, and a web-based frontend into an end-to-end application.
+A payment failure analysis and revenue recovery system that combines
+machine learning, deterministic business rules, and a workflow-based
+decision system to identify the cause of failed transactions, estimate
+recovery probability, and recommend the appropriate action.
 
 ---
 
@@ -466,14 +467,19 @@ The frontend is served using Nginx.
 Nginx serves the static frontend and proxies API requests to the FastAPI backend.
 
 ```text
-Browser
-   |
-   | /api/*
-   v
-Nginx
-   |
-   v
-FastAPI
+                    Docker Container
+┌─────────────────────────────────────────────┐
+│                                             │
+│   Nginx                  FastAPI            │
+│   Frontend  ───────────→ Backend            │
+│                             │               │
+│                             ↓               │
+│                         LangGraph           │
+│                             │               │
+│                             ↓               │
+│                         ML Models           │
+│                                             │
+└─────────────────────────────────────────────┘
 ```
 
 This allows the browser to communicate with the backend without directly exposing the backend URL to the frontend JavaScript.
@@ -482,23 +488,18 @@ This allows the browser to communicate with the backend without directly exposin
 
 ## Deployment
 
-The backend is deployed using Render.
+The application is deployed on Render as a single Docker service.
 
-Production backend:
+The Docker container runs:
 
-```text
-https://razorpay-recovery-backend-16zf.onrender.com
-```
+- Nginx for serving the frontend
+- FastAPI for the backend
 
-The backend runs the Docker image and starts FastAPI using:
+Nginx acts as a reverse proxy and forwards `/api/` requests to FastAPI.
 
-```bash
-uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000
-```
+Production application:
 
-The frontend is also Dockerized and can be deployed separately.
-
----
+https://razorpay-revenue-recovery-kh2d.onrender.com
 
 ## Technology Stack
 
@@ -542,6 +543,17 @@ The frontend is also Dockerized and can be deployed separately.
 - VS Code
 
 ---
+
+### Why not use AI for every decision?
+
+Not every problem requires an AI model.
+
+Some payment recovery decisions are better handled using explicit
+business rules because they are predictable, explainable, and
+deterministic.
+
+Machine learning is used where prediction is useful, while business
+rules handle cases where the correct action is already known.
 
 ## Example Output
 
