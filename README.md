@@ -88,6 +88,26 @@ Instead of treating every failed transaction the same way, this system analyzes 
 
 ## Link: https://razorpay-revenue-recovery-kh2d.onrender.com/
 
+after clicking the link if you see the following message then wait for sometime for backend to start.
+<img width="944" height="405" alt="image" src="https://github.com/user-attachments/assets/2e941d51-2216-432a-9b8f-b387c8362592" />
+
+this is because my frontend is loading first and backend next it takes a little bit to time to download all the packages.
+
+### How to use
+
+There are two sections one manual and other is generated dataset
+
+-`For the manual the user has to select the values for payment transaction.`
+
+-`For generated dataset it randomly create a dataset and perform operations on it.`
+
+## Note:
+
+what operations performed in an transaction can seen by clicking on the transaction.
+
+Example:
+<img width="1916" height="868" alt="example" src="https://github.com/user-attachments/assets/316dcba5-169b-4d3a-8791-66309ace1c29" />
+
 ## Features
 
 ### 1. Root Cause Prediction
