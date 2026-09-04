@@ -1,124 +1,207 @@
 # Razorpay Revenue Recovery
 
-An AI-powered payment failure analysis and revenue recovery system that identifies the root cause of failed transactions, recommends an action, attempts recovery, and escalates transactions to human review when recovery fails repeatedly.
+An AI-powered payment failure analysis and revenue recovery system that identifies the root cause of failed transactions, estimates recovery probability, and decides whether a transaction should be recovered, ignored, or escalated for human review.
+
+The system combines Machine Learning, LangGraph, FastAPI, Docker, Nginx, and a web-based frontend into an end-to-end application.
+
+---
 
 ## Overview
 
-The system processes payment transactions through an ML model and a LangGraph-based workflow.
+Payment failures can happen for many different reasons such as:
 
-For each transaction, it:
+- Insufficient funds
+- Card expiration
+- Card blocking
+- Issuer bank downtime
+- Gateway timeout
+- OTP/CVV mismatch
+- Transaction limit exceeded
+- Fraud/risk blocking
 
-1. Predicts the payment failure root cause.
-2. Calculates prediction confidence.
-3. Generates an explanation for the failure.
-4. Recommends an appropriate action.
-5. Attempts transaction recovery.
-6. Retries recovery when it fails.
-7. Escalates to human review after repeated failures.
-8. Reports recovered revenue and money still at risk.
+Instead of treating every failed transaction the same way, this system analyzes transaction-level information and determines:
 
-The project supports both **manual transaction analysis** and **generated batch datasets**.
+1. Why the payment failed
+2. How confident the ML model is about the root cause
+3. How likely the transaction is to be recovered
+4. Whether the transaction should be recovered
+5. Whether human intervention is required
+6. What action should be recommended
 
 ---
 
-## Architecture
+## System Architecture
 
 ```text
-                    ┌─────────────────────┐
-                    │      Frontend       │
-                    │     HTML/CSS/JS     │
-                    └──────────┬──────────┘
-                               │
-                               │ HTTP / JSON
-                               ▼
-                    ┌─────────────────────┐
-                    │       FastAPI       │
-                    │      Backend        │
-                    └──────────┬──────────┘
-                               │
-                ┌──────────────┴──────────────┐
-                │                             │
-                ▼                             ▼
-        Manual Transaction             Generated Dataset
-                │                             │
-                │                             ▼
-                │                    Batch Processor
-                │                             │
-                └──────────────┬──────────────┘
-                               ▼
-                    ┌─────────────────────┐
-                    │      LangGraph      │
-                    │       Agent         │
-                    └──────────┬──────────┘
-                               │
-                               ▼
-                    ┌─────────────────────┐
-                    │    XGBoost Model    │
-                    │   Root Cause Model  │
-                    └─────────────────────┘
+                     User
+                      |
+                      v
+              +---------------+
+              |   Frontend    |
+              | HTML/CSS/JS   |
+              +-------+-------+
+                      |
+                    /api
+                      |
+                      v
+              +---------------+
+              |     Nginx     |
+              | Reverse Proxy  |
+              +-------+-------+
+                      |
+                      v
+              +---------------+
+              |    FastAPI    |
+              |    Backend     |
+              +-------+-------+
+                      |
+                      v
+              +---------------+
+              |   LangGraph   |
+              | Agent Workflow |
+              +-------+-------+
+                      |
+          +-----------+-----------+
+          |                       |
+          v                       v
+ +----------------+      +------------------+
+ | Root Cause ML  |      | Recovery Model   |
+ |     Model      |      |                  |
+ +----------------+      +------------------+
+          |                       |
+          +-----------+-----------+
+                      |
+                      v
+              Recovery Decision
+                      |
+          +-----------+-----------+
+          |           |           |
+          v           v           v
+       Recover    Do Not      Human Review
+                  Recover
 ```
 
 ---
 
-## LangGraph Workflow
+### Live Demo
 
-The transaction goes through a workflow similar to:
+## Link: https://razorpay-revenue-recovery-kh2d.onrender.com/
 
-```text
-             Transaction
-                  │
-                  ▼
-          Predict Root Cause
-                  │
-                  ▼
-          Confidence Router
-            /           \
-       High confidence   Low confidence
-           │                 │
-           ▼                 ▼
-       Get Reason       Human Review
-           │
-           ▼
-    Recommended Action
-           │
-           ▼
-     Attempt Recovery
-        /          \
-   Recovered      Failed
-      │             │
-      ▼             ▼
-     END       Recovery Attempts
-                    │
-             ┌──────┴──────┐
-             │             │
-            < 3           >= 3
-             │             │
-             ▼             ▼
-           Retry      Human Review
-```
+## Features
+
+### 1. Root Cause Prediction
+
+The system uses a trained machine learning pipeline to predict the most likely reason for a failed payment.
+
+Supported root causes include:
+
+- `bank_server_timeout`
+- `card_blocked`
+- `expired_card`
+- `insufficient_funds`
+- `issuer_bank_down`
+- `otp_cvv_mismatch`
+- `risk_fraud_block`
+- `transaction_limit_exceeded`
+
+The model also returns a confidence score for the prediction.
 
 ---
 
-## Machine Learning Model
+### 2. Recovery Probability
 
-The root cause classifier uses **XGBoost**.
+A second machine learning pipeline estimates the probability that the failed transaction can be successfully recovered.
 
-### Root causes
+The recovery model considers the transaction features together with the predicted root cause.
 
-The model currently predicts:
+---
 
-* `insufficient_funds`
-* `expired_card`
-* `bank_server_timeout`
-* `otp_cvv_mismatch`
-* `issuer_bank_down`
-* `transaction_limit_exceeded`
-* `risk_fraud_block`
-* `card_blocked`
+### 3. Confidence-Based Routing
 
-### Features
+The LangGraph workflow checks the root cause prediction confidence.
 
-The model uses transaction-level observable features such as:
+```text
+Confidence >= 80%
+        |
+        v
+   Continue Processing
+
+Confidence < 80%
+        |
+        v
+   Human Review
+```
+
+This prevents low-confidence predictions from being automatically processed.
+
+---
+
+### 4. Recovery Decision
+
+The system applies business rules on top of the ML predictions.
+
+Examples:
+
+- Transactions with too many retries are escalated.
+- Fraud-related failures are sent for human review.
+- Expired or blocked cards are not automatically retried.
+- High-value transactions require higher recovery confidence.
+- Transactions with sufficiently high recovery probability can be recovered.
+
+---
+
+### 5. Recovery Simulation
+
+The system simulates a recovery attempt using the predicted recovery probability.
+
+If the simulated recovery succeeds:
+
+```text
+Recovered
+```
+
+Otherwise, the system can retry up to the configured retry limit before escalating to human review.
+
+---
+
+### 6. Manual Transaction Analysis
+
+Users can enter transaction details manually through the frontend and analyze an individual failed payment.
+
+The interface displays:
+
+- Root cause
+- Prediction confidence
+- Recovery probability
+- Recovery decision
+- Recovery status
+- Number of recovery attempts
+- Recommended action
+
+---
+
+### 7. Generated Dataset Analysis
+
+The application can generate a batch of synthetic payment failure transactions and process them through the complete agent workflow.
+
+The dashboard provides:
+
+- Number of transactions processed
+- Total transaction amount
+- Money recovered
+- Amount at risk
+- Human review count
+- Recovery rate
+
+---
+
+## Machine Learning Pipeline
+
+### Root Cause Model
+
+The root cause model is trained to classify payment failures into multiple failure categories.
+
+Input features include:
 
 ```text
 amount
@@ -139,226 +222,67 @@ otp_attempts
 cvv_match
 ```
 
-Identifiers and fields that should not be used for root-cause prediction, such as `transaction_id`, `timestamp`, and the target `root_cause`, are excluded during training.
-
-The trained model is stored as:
+The trained pipeline is stored as:
 
 ```text
 model/root_cause_model.pkl
 ```
 
-The model is loaded once when `nodes.py` is imported, so it remains in memory instead of being loaded for every transaction.
-
 ---
 
-## Recovery System
+### Recovery Probability Model
 
-Recovery is attempted after the root cause has been identified.
+The recovery probability model predicts the probability that a transaction can be successfully recovered.
 
-Each root cause has a recovery probability used to simulate realistic recovery behavior:
-
-```python
-RECOVERY_PROBABILITIES = {
-    "insufficient_funds": 0.60,
-    "bank_server_timeout": 0.75,
-    "issuer_bank_down": 0.70,
-    "otp_cvv_mismatch": 0.55,
-    "card_blocked": 0.30,
-    "expired_card": 0.20,
-    "risk_fraud_block": 0.15,
-    "transaction_limit_exceeded": 0.45,
-}
-```
-
-A recovery attempt returns:
-
-```python
-{
-    "recovered": 0 or 1,
-    "recovery_attempts": ...
-}
-```
-
-If recovery succeeds:
+The trained pipeline is stored as:
 
 ```text
-END
-```
-
-If recovery fails:
-
-```text
-attempts < 3 → retry
-attempts >= 3 → human review
+model/recovery_probability_pipeline.pkl
 ```
 
 ---
 
-## Dataset Generator
+## LangGraph Workflow
 
-The project contains a synthetic payment failure dataset generator.
+The backend uses LangGraph to coordinate the transaction analysis workflow.
 
-The user can specify the number of transactions to generate.
-
-For example:
-
-```text
-10
-30
-100
-1000
-```
-
-The generator creates realistic transaction features and cause-specific signals.
-
-The generated data can be passed directly to the batch processor without requiring the user to manually create a CSV first.
-
----
-
-## Batch Processing
-
-The batch processor:
-
-1. Generates the requested number of transactions.
-2. Converts each row into the transaction format expected by the agent.
-3. Invokes the LangGraph workflow.
-4. Collects the result for every transaction.
-5. Calculates revenue recovery statistics.
-
-The final summary includes:
-
-```text
-Processed
-Total Amount
-Money Recovered
-Amount at Risk
-Human Review
-Recovery Rate
-```
-
-### Recovery rate
-
-Recovery rate is based on **money**, rather than the number of transactions:
-
-```text
-Recovery Rate =
-    Money Recovered / Total Amount × 100
-```
-
-This gives a more meaningful measure of revenue recovery.
-
----
-
-## API
-
-The backend is built using **FastAPI**.
-
-### Manual prediction
-
-```http
-POST /predict
-```
-
-The frontend sends the transaction fields directly:
-
-```json
-{
-    "payment_method": "credit_card",
-    "gateway_status": "operational",
-    "issuer_status": "operational",
-    "amount": 500,
-    "card_age_days": 400,
-    "card_expiry_days": 250,
-    "retry_count": 1,
-    "customer_tenure_days": 800,
-    "customer_past_success_rate": 0.92,
-    "gateway_response_time_ms": 350,
-    "issuer_response_time_ms": 300,
-    "risk_score": 0.15,
-    "available_balance_ratio": 0.08,
-    "transaction_limit": 5000,
-    "otp_attempts": 1,
-    "cvv_match": 1
-}
-```
-
-### Batch processing
-
-```http
-POST /batch
-```
-
-The endpoint accepts the number of transactions:
-
-```text
-n_rows
-```
-
-and returns:
-
-```json
-{
-    "results": [],
-    "summary": {
-        "processed": 30,
-        "total_amount": 61750.5,
-        "recovered_amount": 52990.5,
-        "amount_at_risk": 8760,
-        "human_review": 4,
-        "recovery_rate": 85.9
-    }
-}
-```
-
----
-
-## Frontend
-
-The frontend is built using:
-
-* HTML
-* CSS
-* JavaScript
-
-It provides two modes:
-
-### Manual Transaction
-
-The user enters transaction information manually and receives the analysis.
-
-### Generated Dataset
-
-The user enters the number of transactions:
-
-```text
-Number of transactions: 30
-```
-
-The backend generates and processes the transactions.
-
-The dashboard displays:
-
-```text
-Processed
-Total Amount
-Money Recovered
-Amount at Risk
-Human Review
-Recovery Rate
-```
-
-It also provides a transaction-level results table containing:
+Conceptually:
 
 ```text
 Transaction
-Root Cause
-Confidence
-Recovery
-Attempts
-Action
+     |
+     v
+Root Cause Prediction
+     |
+     v
+Confidence Router
+     |
+     +---- Low Confidence ----> Human Review
+     |
+     +---- High Confidence
+                |
+                v
+       Recovery Probability
+                |
+                v
+        Recovery Decision
+                |
+        +-------+-------+
+        |       |       |
+        v       v       v
+     Recover  Do Not  Human Review
+              Recover
+                |
+                v
+        Recovery Attempt
+                |
+        +-------+-------+
+        |               |
+        v               v
+    Recovered        Not Recovered
+                        |
+                 Retry / Human Review
 ```
-
-Clicking a transaction displays its detailed analysis.
 
 ---
 
@@ -368,121 +292,384 @@ Clicking a transaction displays its detailed analysis.
 Razorpay Revenue Recovery/
 │
 ├── agent/
-│   ├── __init__.py
+│   ├── batch_processor.py
 │   ├── graph.py
 │   ├── nodes.py
 │   ├── state.py
-│   ├── batch_processor.py
 │   └── test_node.py
 │
 ├── backend/
-│   └── main.py
+│   ├── __init__.py
+│   ├── main.py
+│   └── schemas.py
 │
 ├── data/
+│   ├── data_cleaning.ipynb
 │   ├── data_creator.py
-│   └── data_cleaning.ipynb
-│
-├── model/
-│   └── root_cause_model.pkl
+│   └── payment_failures.csv
 │
 ├── frontend/
 │   ├── index.html
+│   ├── script.js
 │   ├── style.css
-│   └── script.js
+│   ├── nginx.conf
+│   └── Dockerfile
 │
+├── model/
+│   ├── recovery_prob_predictor.py
+│   ├── recovery_probability_pipeline.pkl
+│   ├── root_cause_model.pkl
+│   └── root_cause_predictor.py
+│
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
 ├── .gitignore
 ├── pyproject.toml
-├── requirements.txt
-├── README.md
-└── uv.lock
+├── uv.lock
+└── README.md
 ```
 
 ---
 
-## Running the Project
+## API
 
-### Start the FastAPI backend
+The backend is built with FastAPI.
 
-From the project root:
+### Main Endpoints
+
+#### Predict a Transaction
+
+```http
+POST /predict
+```
+
+Analyzes a single payment failure.
+
+#### Process Generated Transactions
+
+```http
+POST /batch?n_rows=50
+```
+
+Generates and analyzes a batch of transactions.
+
+---
+
+## Running Locally
+
+### Requirements
+
+- Python 3.14+
+- Docker
+- Docker Compose
+- Git
+
+---
+
+### Run with Docker Compose
+
+Clone the repository:
 
 ```bash
-uvicorn backend.main:app --reload
+git clone https://github.com/Karthik15906/Razorpay-Revenue-Recovery.git
 ```
 
-The API will run on:
-
-```text
-http://127.0.0.1:8000
-```
-
-### Run batch processing directly
+Move into the project:
 
 ```bash
-python -m agent.batch_processor
+cd Razorpay-Revenue-Recovery
 ```
 
-### Open the frontend
+Build and start the containers:
 
-Open:
-
-```text
-frontend/index.html
+```bash
+docker compose up --build
 ```
 
-in the browser.
-
-The frontend communicates with:
+The application uses two containers:
 
 ```text
-http://127.0.0.1:8000
+Frontend → Nginx
+Backend  → FastAPI
+```
+
+The local services are available at:
+
+```text
+Frontend:
+http://localhost:10000
+
+Backend:
+http://localhost:8000
+
+Swagger:
+http://localhost:8000/docs
 ```
 
 ---
 
-## Technologies
+### Run in Background
+
+```bash
+docker compose up -d
+```
+
+Check running containers:
+
+```bash
+docker compose ps
+```
+
+View logs:
+
+```bash
+docker compose logs
+```
+
+Stop the application:
+
+```bash
+docker compose down
+```
+
+---
+
+## Docker Architecture
+
+The project uses separate containers for the frontend and backend.
+
+### Backend
+
+The backend Docker image contains:
+
+- Python
+- uv
+- FastAPI
+- LangGraph
+- scikit-learn
+- XGBoost
+- pandas
+- NumPy
+- Trained ML models
+
+The backend exposes:
 
 ```text
-Python
-Pandas
-NumPy
-Scikit-learn
-XGBoost
-LangGraph
-LangChain
+8000
+```
+
+### Frontend
+
+The frontend is served using Nginx.
+
+Nginx serves the static frontend and proxies API requests to the FastAPI backend.
+
+```text
+Browser
+   |
+   | /api/*
+   v
+Nginx
+   |
+   v
 FastAPI
-HTML
-CSS
-JavaScript
-Joblib
+```
+
+This allows the browser to communicate with the backend without directly exposing the backend URL to the frontend JavaScript.
+
+---
+
+## Deployment
+
+The backend is deployed using Render.
+
+Production backend:
+
+```text
+https://razorpay-recovery-backend-16zf.onrender.com
+```
+
+The backend runs the Docker image and starts FastAPI using:
+
+```bash
+uv run uvicorn backend.main:app --host 0.0.0.0 --port 8000
+```
+
+The frontend is also Dockerized and can be deployed separately.
+
+---
+
+## Technology Stack
+
+### Backend
+
+- Python
+- FastAPI
+- Pydantic
+- Uvicorn
+
+### Machine Learning
+
+- scikit-learn
+- XGBoost
+- pandas
+- NumPy
+- joblib
+
+### Agent Workflow
+
+- LangGraph
+
+### Frontend
+
+- HTML
+- CSS
+- JavaScript
+- Nginx
+
+### Deployment
+
+- Docker
+- Docker Compose
+- Render
+
+### Development
+
+- Git
+- GitHub
+- uv
+- VS Code
+
+---
+
+## Example Output
+
+For a transaction, the system can produce a result similar to:
+
+```text
+Root Cause:
+issuer_bank_down
+
+Confidence:
+98.21%
+
+Recovery Probability:
+75.95%
+
+Decision:
+RECOVER
+
+Recovered:
+Yes
+
+Recovery Attempts:
+1
 ```
 
 ---
 
-## Current Status
+## Business Logic
 
-### Completed
+The system combines machine learning predictions with deterministic business rules.
 
-* Synthetic payment failure dataset generation
-* Root-cause classification
-* XGBoost model training
-* Categorical feature encoding
-* Model persistence with Joblib
-* LangGraph workflow
-* Confidence-based routing
-* Root-cause explanations
-* Recommended actions
-* Recovery attempts
-* Retry logic
-* Human-review escalation
-* Batch transaction processing
-* Revenue recovery calculations
-* FastAPI backend
-* HTML/CSS/JS frontend
-* Manual transaction analysis
-* Generated dataset analysis
-* Frontend dashboard
-* Transaction-level results
+For example:
 
-### Current goal
+```text
+Retry Count >= 3
+        ↓
+Human Review
+```
 
-Turn the prototype into a complete **payment failure diagnosis and revenue recovery system** that can demonstrate both ML prediction and agentic decision-making.
+```text
+Risk/Fraud Block
+        ↓
+Human Review
+```
+
+```text
+Expired Card / Blocked Card
+        ↓
+Do Not Recover
+```
+
+```text
+Recovery Probability >= 70%
+        ↓
+Recover
+```
+
+High-value transactions have additional recovery-confidence requirements.
+
+---
+
+## Why This Project?
+
+A payment failure is not always a permanent failure.
+
+Different failures require different actions.
+
+For example:
+
+```text
+Issuer Bank Down
+        ↓
+Wait and Retry
+```
+
+while:
+
+```text
+Expired Card
+        ↓
+Ask Customer for a Valid Card
+```
+
+and:
+
+```text
+Fraud Block
+        ↓
+Human Review
+```
+
+The goal of this project is to demonstrate how machine learning predictions can be combined with an agent workflow and business rules to make more useful payment recovery decisions.
+
+---
+
+## Future Improvements
+
+Possible future improvements include:
+
+- Real payment gateway integration
+- Persistent transaction storage
+- Authentication and authorization
+- Monitoring and logging
+- Model monitoring
+- Explainable ML predictions
+- More sophisticated recovery strategies
+- Real-time transaction processing
+- Cloud database integration
+- Automated model retraining
+- Production-grade observability
+
+---
+
+## Author
+
+**Karthik Chukka**
+
+Computer Science Undergraduate
+Interested in AI/ML, Data Science and intelligent backend systems.
+
+---
+
+## License
+
+This project is for educational and portfolio purposes.
+
+<img width="857" height="433" alt="image" src="https://github.com/user-attachments/assets/a0486b4d-6c43-4cc4-9d75-2d50cddc1bdf" />
+<img width="727" height="415" alt="image" src="https://github.com/user-attachments/assets/8c3cffee-470c-44df-8b48-da5ad5e407ef" />
+<img width="671" height="428" alt="image" src="https://github.com/user-attachments/assets/dc90a747-088d-4c5e-8b56-4181bfab50e3" />
+<img width="803" height="436" alt="image" src="https://github.com/user-attachments/assets/828543ee-6be2-4c15-ba0c-a86469702b50" />
+<img width="781" height="374" alt="image" src="https://github.com/user-attachments/assets/8d6cb981-b316-4755-85f1-361261533858" />
